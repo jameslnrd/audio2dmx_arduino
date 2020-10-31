@@ -6,16 +6,11 @@
 
 //////////////////////////// DMX SHIELD STUFF
 
-//
 // CTC-DRA-13-1 ISOLATED DMX-RDM SHIELD JUMPER INSTRUCTIONS
-//
 #define DMX_MASTER_CHANNELS   20 
 
-//
 // Pin number to change read or write mode on the shield
-//
 #define RXEN_PIN                2
-
 
 // Configure a DMX master controller, the master controller
 // will use the RXEN_PIN to control its write operation 
@@ -24,8 +19,9 @@ DMX_Master        dmx_master ( DMX_MASTER_CHANNELS, RXEN_PIN );
 
 
 ///////// IR RECEIVER STUFF 
-int receiverPin = 13; // Signal Pin of IR receiver to Arduino Digital Pin 12
-int receiver5v = 12;  // Signal Pin to create a logic 5V to power the IR detector
+int receiver5v = 5;  // Signal Pin to create a logic 5V to power the IR detector
+int receiverPin = 6; // Signal Pin of IR receiver to Arduino Digital Pin 6
+int receiverGnd = 7; // Signal Pin to create ground for IR module
 
 IRrecv irrecv(receiverPin);     // create instance of 'irrecv'
 decode_results results;      // create instance of 'decode_results'
@@ -41,8 +37,8 @@ int buf_index = 0;
 int soundPin = A0;
 int sensorValue = 0;
 
-int ledPow = 7;
-int ledGnd = 6;
+//int ledPow = LED_BUILTIN;
+//int ledGnd = 6;
 
 float sampleVariance = 0;
 float sensitivity = 1;
@@ -125,10 +121,10 @@ float smooth_signal(float sample, float* mem, int slideUp, int slideDown){
 void dmxBlinker(int nb){
   for(unsigned int i = 0; i < nb; i++){
     dmx_master.setChannelValue (1, 5);
-    digitalWrite(ledPow, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(90);                       // wait for a second
     dmx_master.setChannelValue (1, 0);
-    digitalWrite(ledPow, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(90);
   }  
 }
@@ -223,14 +219,23 @@ void setup ()
   // Start the Infra Red receiver
   irrecv.enableIRIn();
 
-  // create a 5V pin on 13 so that we can group connections to the IR Receiver
+  // create a 5V pin on 5 and 0 on pin 7 so we can connect the IR Receiver
   pinMode(receiver5v, OUTPUT);
   digitalWrite(receiver5v, HIGH);
+  pinMode(receiverGnd, OUTPUT);
+  digitalWrite(receiverGnd, LOW);
+
+  // Signal Pin from the IR receiver
+  pinMode(receiverPin, INPUT);
+
 
   // place a led between digital pins 7 and 6 (used to acknowledge IR commands)
-  pinMode(ledPow, OUTPUT);
-  pinMode(ledGnd, OUTPUT);  
-  digitalWrite(ledGnd, LOW);
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  //pinMode(ledPow, OUTPUT);
+  //pinMode(ledGnd, OUTPUT);  
+
+  digitalWrite(LED_BUILTIN, LOW);
 
   
   // read a byte from the current address of the EEPROM
